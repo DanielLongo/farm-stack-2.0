@@ -22,3 +22,8 @@ class MongoClient(BaseClient):
             {"auth0_user_id": auth0_user_user_id}
         )
         return User(**user)
+
+    async def create_user(self, user: User) -> User:
+        user_dict = user.model_dump(by_alias=True)
+        await self.db_client.users.insert_one(user_dict)
+        return user
