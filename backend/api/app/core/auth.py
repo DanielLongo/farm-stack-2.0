@@ -82,7 +82,7 @@ class JsonWebToken:
         return payload
 
 
-def validate_token(token: str = Depends(get_bearer_token)):
+def validate_token(token: str = Depends(get_bearer_token)) -> dict:
     return JsonWebToken(token).validate()
 
 

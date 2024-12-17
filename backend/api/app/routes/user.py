@@ -14,15 +14,9 @@ async def get_user_info(user: User = Depends(get_user)):
 
 
 @router.post("/register")
-async def register_user(
-    user_data: dict,
-    token: str = Depends(validate_token)
-):
+async def register_user(user_data: dict, token: dict = Depends(validate_token)):
     auth0_user_id = token.get("sub")
-    user = User(
-        auth0_user_id=auth0_user_id,
-        name=user_data.get("name")
-    )
+    user = User(auth0_user_id=auth0_user_id, name=user_data.get("name"))
     mongo_client = MongoClient()
     created_user = await mongo_client.create_user(user)
     return created_user

@@ -7,6 +7,7 @@ from app.integrations.clients.mongo_client import MongoClient
 
 async def get_user(token: str = Depends(get_bearer_token)) -> User:
     user_id = JsonWebToken(token).validate().get("sub")
+    assert user_id is not None
     mongo_client = MongoClient()
     try:
         user = await mongo_client.get_user(user_id)

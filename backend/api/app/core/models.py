@@ -5,7 +5,7 @@ from app.core.fields import PyObjectId
 
 class User(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    auth0_user_id: str
+    auth0_user_id: Optional[str] = None
     name: Optional[str] = None
     email: Optional[str] = None
     phone_number: Optional[str] = None
