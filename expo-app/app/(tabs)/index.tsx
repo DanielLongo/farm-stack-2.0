@@ -12,6 +12,7 @@ import { Link } from "expo-router";
 import { useState } from "react";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { auth } from "../../config/firebase";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -181,9 +182,19 @@ export default function Index() {
             <Feather name="message-circle" size={20} color="black" />
           </TouchableOpacity>
 
-          <TouchableOpacity className="py-3 px-4 flex-row items-center justify-between">
-            <Text className="text-base">Terms and Privacy</Text>
-            <Feather name="info" size={20} color="black" />
+          <TouchableOpacity
+            className="py-3 px-4 flex-row items-center justify-between"
+            onPress={async () => {
+              try {
+                await auth.signOut();
+                // The _layout.tsx protection will automatically redirect to login
+              } catch (error) {
+                console.error("Error signing out:", error);
+              }
+            }}
+          >
+            <Text className="text-base text-red-500">Logout</Text>
+            <Feather name="log-out" size={20} color="#ef4444" />
           </TouchableOpacity>
         </Animated.View>
       )}

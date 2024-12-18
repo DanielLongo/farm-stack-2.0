@@ -24,6 +24,12 @@ export default function AuthLayout() {
           tabBarLabel: "Verify",
         }}
       />
+      <Tabs.Screen
+        name="biometric_login"
+        options={{
+          tabBarLabel: "Biometric",
+        }}
+      />
     </Tabs>
   );
 }

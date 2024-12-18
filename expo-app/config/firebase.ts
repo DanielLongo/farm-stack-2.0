@@ -1,5 +1,10 @@
 import { initializeApp, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+} from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const config = {
   apiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY!,
   authDomain: process.env.EXPO_PUBLIC_GOOGLE_AUTH_DOMAIN!,
@@ -24,7 +29,11 @@ export const initializeFirebase = () => {
       return getApp();
     } catch {
       // If not initialized, initialize it
-      return initializeApp(minimalConfig);
+      const app = initializeApp(minimalConfig);
+
+      // Initialize Auth with persistence
+
+      return app;
     }
   } catch (error: any) {
     console.error("Firebase initialization error:", error);
@@ -34,4 +43,8 @@ export const initializeFirebase = () => {
 
 export const firebaseConfig = config;
 
-export const auth = getAuth(initializeFirebase());
+export const auth = initializeAuth(initializeFirebase(), {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+// export const auth = getAuth(initializeFirebase());

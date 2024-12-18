@@ -9,6 +9,7 @@ function useProtectedRoute() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [initializing, setInitializing] = useState(true);
+  const [biometricAuthenticated, setBiometricAuthenticated] = useState(false);
 
   useEffect(() => {
     // Subscribe to auth state changes
@@ -27,13 +28,13 @@ function useProtectedRoute() {
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to login if user is not authenticated and not already on auth screen
       router.replace("/(auth)/login");
-    } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to home if user is authenticated and trying to access auth screens
+    } else if (isAuthenticated && !biometricAuthenticated && !inAuthGroup) {
+      router.replace("/(auth)/biometric_login");
+    } else if (isAuthenticated && biometricAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
     }
-  }, [isAuthenticated, segments, initializing, router]);
+  }, [isAuthenticated, segments, initializing, router, biometricAuthenticated]);
 }
 
 export default function RootLayout() {
