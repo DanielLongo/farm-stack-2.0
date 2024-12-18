@@ -14,7 +14,9 @@ const AppBar: FC<AppBarProps> = ({ showLogin = true }) => {
         alt="logo"
         className="w-10 h-10"
       /> */}
-      <h3 className="text-xl font-semibold font-robotoMono">LIBRE</h3>
+      <h3 className="text-xl font-semibold font-robotoMono">
+        [PLACEHOLDER NAME]
+      </h3>
       {showLogin && (
         <p
           onClick={() => loginWithRedirect()}

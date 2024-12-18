@@ -4,8 +4,9 @@ import SourcesView from "./SourcesView";
 import DatasetsView from "./DatasetsView";
 import StudioView from "./StudioView";
 import SideMenu from "../../components/layout/SideMenu";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import useUser from "../../hooks/useUser";
+import { Auth0ProviderWithNavigate } from "../../core/auth0ProviderWithNavigate";
 type View = "sources" | "datasets" | "studio" | "search";
 
 interface HomePageProps {
@@ -127,4 +128,7 @@ const HomePage: FC<HomePageProps> = ({ urlView }) => {
   );
 };
 
-export default HomePage;
+export default withAuthenticationRequired(HomePage, {
+  returnTo: "/",
+  onRedirecting: () => <HomePage />,
+});

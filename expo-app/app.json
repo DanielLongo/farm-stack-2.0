@@ -32,6 +32,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "react-native-auth0",
+        {
+          "domain": "thrive-app-dev.us.auth0.com"
+        }
       ]
     ],
     "experiments": {

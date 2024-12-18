@@ -3,7 +3,6 @@ import logo from "./logo.svg";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/landing/LandingPage";
 import HomePage from "./pages/home/HomePage";
-import PlaygroundPage from "./pages/playground/PlaygroundPage";
 function App() {
   return (
     <Routes>
@@ -12,7 +11,6 @@ function App() {
       <Route path="/home/sources" element={<HomePage urlView="sources" />} />
       <Route path="/home/search" element={<HomePage urlView="search" />} />
       <Route path="/home/studio" element={<HomePage urlView="studio" />} />
-      <Route path="/playground" element={<PlaygroundPage />} />
     </Routes>
   );
 }

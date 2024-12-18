@@ -1,43 +1,33 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-import { Auth0ProviderWrapper } from '@/app/providers/Auth0Provider';
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
+import "../global.css";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// Add this function to check authentication
+function useProtectedRoute() {
+  const segments = useSegments();
+  const router = useRouter();
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  // Replace this with your actual auth check
+  const isAuthenticated = false; // TODO: Add your auth check here
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const inAuthGroup = segments[0] === "(auth)";
 
-  if (!loaded) {
-    return null;
-  }
+    if (!isAuthenticated && !inAuthGroup) {
+      // Redirect to login if user is not authenticated and not already on auth screen
+      router.replace("/(auth)/login");
+    }
+  }, [isAuthenticated, segments]);
+}
+
+export default function RootLayout() {
+  useProtectedRoute();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Auth0ProviderWrapper>
-        <Stack>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </Auth0ProviderWrapper>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+    </Stack>
   );
 }
