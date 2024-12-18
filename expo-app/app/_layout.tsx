@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import "../global.css";
+import { initializeFirebase } from "../config/firebase";
 
 // Add this function to check authentication
 function useProtectedRoute() {
@@ -21,12 +22,20 @@ function useProtectedRoute() {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    initializeFirebase();
+  }, []);
+
   useProtectedRoute();
 
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="(auth)/confirm_phone_number"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
   );

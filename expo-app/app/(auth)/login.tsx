@@ -5,21 +5,54 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import { useState } from "react";
-import { usePhoneAuth } from "../../hooks/usePhoneAuth";
+import { useState, useRef } from "react";
+import { signInWithPhoneNumber, PhoneAuthProvider } from "firebase/auth";
+import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
+
+import { useRouter } from "expo-router";
+import { auth } from "../../config/firebase";
 
 export default function Login() {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const { loading, error, sendVerificationCode } = usePhoneAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const recaptchaVerifier = useRef(null);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (phoneNumber) {
-      sendVerificationCode(phoneNumber);
+      try {
+        setLoading(true);
+        setError(null);
+
+        const formattedNumber = phoneNumber.startsWith("+")
+          ? phoneNumber
+          : `+1${phoneNumber.replace(/\D/g, "")}`;
+
+        const phoneProvider = new PhoneAuthProvider(auth);
+        const verificationId = await phoneProvider.verifyPhoneNumber(
+          formattedNumber,
+          recaptchaVerifier.current
+        );
+
+        router.push({
+          pathname: "/(auth)/verify",
+          params: { verificationId },
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <View className="flex-1 justify-center items-center bg-amber-50 p-6">
+      <FirebaseRecaptchaVerifierModal
+        ref={recaptchaVerifier}
+        firebaseConfig={auth.app.options}
+      />
       <Text className="text-2xl font-bold mb-8">Login or Sign Up</Text>
 
       <View className="w-full">
