@@ -6,17 +6,40 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { usePhoneAuth } from "../../hooks/usePhoneAuth";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { PhoneAuthProvider, signInWithCredential } from "firebase/auth";
+import { auth } from "../../config/firebase";
 
 export default function ConfirmPhoneNumber() {
-  const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
+  const { verificationId } = useLocalSearchParams<{ verificationId: string }>();
   const [code, setCode] = useState("");
-  const { loading, error, verifyCode } = usePhoneAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const handleVerify = () => {
-    if (code.length === 6 && phoneNumber) {
-      verifyCode(phoneNumber, code);
+  const handleVerify = async () => {
+    if (code.length === 6 && verificationId) {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Create credential
+        const credential = PhoneAuthProvider.credential(verificationId, code);
+
+        // Sign in with credential
+        await signInWithCredential(auth, credential);
+
+        // Navigate to main app on success
+        router.replace("/(tabs)");
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Invalid verification code"
+        );
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setError("Please enter a valid 6-digit code");
     }
   };
 
@@ -27,7 +50,7 @@ export default function ConfirmPhoneNumber() {
       {error && <Text className="text-red-500 mb-4 text-center">{error}</Text>}
 
       <Text className="text-gray-600 mb-6 text-center">
-        Enter the 6-digit code we sent to {phoneNumber}
+        Enter the 6-digit code we sent to your phone
       </Text>
 
       <TextInput
@@ -38,6 +61,8 @@ export default function ConfirmPhoneNumber() {
         maxLength={6}
         placeholder="000000"
         editable={!loading}
+        returnKeyType="done"
+        blurOnSubmit={true}
       />
 
       <TouchableOpacity

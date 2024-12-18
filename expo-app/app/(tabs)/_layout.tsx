@@ -7,12 +7,20 @@ export default function RootLayout() {
         name="index"
         options={{
           title: "Home",
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
           title: "Account",
+        }}
+      />
+      <Tabs.Screen
+        name="recording"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
     </Tabs>

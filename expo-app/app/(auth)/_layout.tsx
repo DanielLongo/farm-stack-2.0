@@ -1,13 +1,29 @@
-import { Stack } from "expo-router";
+import { Tabs } from "expo-router";
 
 export default function AuthLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="confirm_phone_number"
-        options={{ headerShown: false }}
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: "#ffffff",
+          borderTopWidth: 1,
+          borderTopColor: "#e5e5e5",
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="login"
+        options={{
+          tabBarLabel: "Login",
+        }}
       />
-    </Stack>
+      <Tabs.Screen
+        name="confirm_phone_number"
+        options={{
+          tabBarLabel: "Verify",
+        }}
+      />
+    </Tabs>
   );
 }
