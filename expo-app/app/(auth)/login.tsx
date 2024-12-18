@@ -36,7 +36,7 @@ export default function Login() {
         );
 
         router.push({
-          pathname: "/(auth)/verify",
+          pathname: "/(auth)/confirm_phone_number",
           params: { verificationId },
         });
       } catch (err) {
@@ -64,6 +64,8 @@ export default function Login() {
           className="w-full bg-white p-4 rounded-lg border border-gray-300 mb-4"
           placeholder="(650) 555-1234"
           keyboardType="phone-pad"
+          textContentType="telephoneNumber"
+          autoComplete="tel"
           value={phoneNumber}
           onChangeText={setPhoneNumber}
           editable={!loading}
