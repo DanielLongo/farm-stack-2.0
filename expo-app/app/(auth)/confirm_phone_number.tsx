@@ -11,11 +11,15 @@ import { PhoneAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../../config/firebase";
 
 export default function ConfirmPhoneNumber() {
-  const { verificationId } = useLocalSearchParams<{ verificationId: string }>();
+  const { verificationId, phoneNumber } = useLocalSearchParams<{
+    verificationId: string;
+    phoneNumber: string;
+  }>();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const handleBack = () => router.back();
 
   const handleVerify = async () => {
     if (code.length === 6 && verificationId) {
@@ -45,12 +49,22 @@ export default function ConfirmPhoneNumber() {
 
   return (
     <View className="flex-1 justify-center items-center bg-amber-50 p-4">
+      <TouchableOpacity
+        className="absolute top-12 left-4 flex-row items-center"
+        onPress={handleBack}
+      >
+        <Text className="text-blue-500">← Back</Text>
+      </TouchableOpacity>
+
       <Text className="text-2xl font-semibold mb-6">Verify Your Phone</Text>
 
       {error && <Text className="text-red-500 mb-4 text-center">{error}</Text>}
 
-      <Text className="text-gray-600 mb-6 text-center">
-        Enter the 6-digit code we sent to your phone
+      <Text className="text-gray-600 mb-2 text-center">
+        Enter the 6-digit code we sent to
+      </Text>
+      <Text className="text-gray-800 font-semibold mb-6 text-center">
+        {phoneNumber}
       </Text>
 
       <TextInput
