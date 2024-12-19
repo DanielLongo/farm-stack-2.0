@@ -8,6 +8,7 @@ import {
   BiometricTokenProvider,
   useBiometricToken,
 } from "@/config/BiometricTokenContext";
+import { useOnboarding } from "../hooks/useOnboarding";
 
 function RootLayoutContent() {
   const segments = useSegments();
@@ -16,7 +17,7 @@ function RootLayoutContent() {
     useState<boolean>(false);
   const [initializing, setInitializing] = useState(true);
   const { biometricToken } = useBiometricToken();
-  console.log("biometricToken", biometricToken);
+  const { hasShownOnboarding } = useOnboarding();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
@@ -29,28 +30,43 @@ function RootLayoutContent() {
 
   useEffect(() => {
     const isBiometricAuthenticated = biometricToken !== null;
-    console.log("isBiometricAuthenticated", isBiometricAuthenticated);
-    console.log("isFirebaseAuthenticated", isFirebaseAuthenticated);
-    // if (initializing) return;
-
+    const needsOnboarding = !hasShownOnboarding;
     const inAuthGroup = segments[0] === "(auth)";
+    const inOnboardingGroup = segments[0] === "(onboarding)";
+
+    if (initializing) return;
 
     if (!isFirebaseAuthenticated) {
       console.log("replacing with login");
-      !inAuthGroup && router.replace("/(auth)/login");
+      if (!inAuthGroup && !inOnboardingGroup) {
+        router.replace("/(auth)/login");
+      }
     } else if (!isBiometricAuthenticated) {
       console.log("replacing with biometric_login");
       router.replace("/(auth)/biometric_login");
+    } else if (needsOnboarding) {
+      console.log("replacing with onboarding");
+      router.replace("/(onboarding)/overview");
     } else {
       console.log("replacing with tabs");
-      inAuthGroup && router.replace("/(tabs)");
+      if (inAuthGroup || inOnboardingGroup) {
+        router.replace("/(tabs)");
+      }
     }
-  }, [isFirebaseAuthenticated, biometricToken, segments, initializing, router]);
+  }, [
+    isFirebaseAuthenticated,
+    biometricToken,
+    segments,
+    initializing,
+    router,
+    hasShownOnboarding,
+  ]);
 
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" options={{ headerShown: false }} />
     </Stack>
   );
