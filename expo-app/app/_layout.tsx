@@ -3,38 +3,65 @@ import { useEffect, useState } from "react";
 import "../global.css";
 import { initializeFirebase, auth } from "../config/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
+import { useBiometricLogin } from "../hooks/useBiometricLogin";
 
 function useProtectedRoute() {
   const segments = useSegments();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isFirebaseAuthenticated, setIsFirebaseAuthenticated] =
+    useState<boolean>(false);
   const [initializing, setInitializing] = useState(true);
-  const [biometricAuthenticated, setBiometricAuthenticated] = useState(false);
+  const {
+    isAuthenticated: isBiometricAuthenticated,
+    loading: biometricLoading,
+  } = useBiometricLogin();
 
   useEffect(() => {
-    // Subscribe to auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
-      setIsAuthenticated(!!user);
+      setIsFirebaseAuthenticated(!!user);
       if (initializing) setInitializing(false);
     });
 
-    // Cleanup subscription
     return unsubscribe;
   }, [initializing]);
 
   useEffect(() => {
-    if (initializing) return;
+    console.log(
+      "useProtectedRoute: isBiometricAuthenticated",
+      isBiometricAuthenticated
+    );
+  }, [isBiometricAuthenticated]);
+
+  useEffect(() => {
+    console.log("useProtectedRoute: initializing", initializing);
+    console.log("useProtectedRoute: biometricLoading", biometricLoading);
+    console.log(
+      "useProtectedRoute: isFirebaseAuthenticated",
+      isFirebaseAuthenticated
+    );
+    console.log(
+      "useProtectedRoute: isBiometricAuthenticated",
+      isBiometricAuthenticated
+    );
+    if (initializing || biometricLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
 
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace("/(auth)/login");
-    } else if (isAuthenticated && !biometricAuthenticated && !inAuthGroup) {
-      router.replace("/(auth)/biometric_login");
-    } else if (isAuthenticated && biometricAuthenticated && inAuthGroup) {
-      router.replace("/(tabs)");
+    if (!isFirebaseAuthenticated) {
+      !inAuthGroup && router.replace("/(auth)/login");
+    } else if (!isBiometricAuthenticated) {
+      !inAuthGroup && router.replace("/(auth)/biometric_login");
+    } else {
+      inAuthGroup && router.replace("/(tabs)");
     }
-  }, [isAuthenticated, segments, initializing, router, biometricAuthenticated]);
+  }, [
+    isFirebaseAuthenticated,
+    isBiometricAuthenticated,
+    segments,
+    initializing,
+    biometricLoading,
+    router,
+  ]);
 }
 
 export default function RootLayout() {
