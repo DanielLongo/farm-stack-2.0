@@ -4,7 +4,9 @@ import React, {
   useState,
   Dispatch,
   SetStateAction,
+  useEffect,
 } from "react";
+import { AppState, AppStateStatus } from "react-native";
 
 interface BiometricTokenContextValue {
   biometricToken: string | null;
@@ -32,6 +34,21 @@ export const BiometricTokenProvider = ({
   children,
 }: React.PropsWithChildren<{}>): JSX.Element => {
   const [biometricToken, setBiometricToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextAppState: AppStateStatus) => {
+        if (nextAppState === "background" || nextAppState === "inactive") {
+          setBiometricToken(null);
+        }
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   return (
     <BiometricTokenContext.Provider

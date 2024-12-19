@@ -10,11 +10,13 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.thrive.app",
       "infoPlist": {
         "NSFaceIDUsageDescription": "This app uses Face ID to securely authenticate you and protect your private journal entries."
       }
     },
     "android": {
+      "package": "com.thrive.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
