@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, usePathname } from "expo-router";
 
-const ONBOARDING_KEY = "@onboarding_status1";
-const ONBOARDING_COMPLETED_KEY = "@onboarding_completed1";
+const ONBOARDING_KEY = "@onboarding_status3";
+const ONBOARDING_COMPLETED_KEY = "@onboarding_completed3";
 
 export type OnboardingScreen =
   | "overview"
@@ -11,17 +11,11 @@ export type OnboardingScreen =
   | "permissions"
   | "complete";
 
-interface OnboardingState {
-  hasShownOnboarding: boolean;
-  currentScreen: OnboardingScreen;
-}
-
 export function useOnboarding() {
   const pathname = usePathname();
-  const [state, setState] = useState<OnboardingState>({
-    hasShownOnboarding: false,
-    currentScreen: "overview",
-  });
+  const [hasShownOnboarding, setHasShownOnboarding] = useState(false);
+  const [currentScreen, setCurrentScreen] =
+    useState<OnboardingScreen>("overview");
 
   // Load onboarding state on mount
   useEffect(() => {
@@ -29,15 +23,10 @@ export function useOnboarding() {
   }, []);
 
   useEffect(() => {
-    if (state.currentScreen === "complete") {
+    if (currentScreen === "complete") {
       completeOnboarding();
-    } else {
-      // Check if current path doesn't match current screen
-      //   if (!pathname.includes(state.currentScreen)) {
-      //     router.replace(`/(onboarding)/${state.currentScreen}`);
-      //   }
     }
-  }, [state.currentScreen, pathname]);
+  }, [currentScreen, pathname]);
 
   const loadOnboardingState = async () => {
     try {
@@ -45,35 +34,32 @@ export function useOnboarding() {
       const completed = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
 
       if (status) {
-        setState(JSON.parse(status));
+        const newState = JSON.parse(status);
+        setHasShownOnboarding(newState.hasShownOnboarding);
+        setCurrentScreen(newState.currentScreen);
+      }
+
+      if (completed === "true") {
+        setHasShownOnboarding(true);
       }
     } catch (error) {
       console.error("Error loading onboarding state:", error);
     }
   };
 
-  const setCurrentScreen = async (screen: OnboardingScreen) => {
-    const newState = {
-      ...state,
-      currentScreen: screen,
-    };
-
-    try {
-      await AsyncStorage.setItem(ONBOARDING_KEY, JSON.stringify(newState));
-      setState(newState);
-    } catch (error) {
-      console.error("Error saving onboarding screen:", error);
+  const setCurrentScreenHandler = async (screen: OnboardingScreen) => {
+    setCurrentScreen(screen);
+    if (screen === "overview" || screen === "security") {
+      router.replace(`/(onboarding)/${screen}`);
     }
   };
 
   const completeOnboarding = async () => {
     try {
       await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, "true");
-      setState({
-        hasShownOnboarding: true,
-        currentScreen: "overview",
-      });
-      router.replace("/(auth)/login");
+      setHasShownOnboarding(true);
+      setCurrentScreen("complete");
+      router.replace("/(tabs)");
     } catch (error) {
       console.error("Error completing onboarding:", error);
     }
@@ -85,10 +71,8 @@ export function useOnboarding() {
         ONBOARDING_KEY,
         ONBOARDING_COMPLETED_KEY,
       ]);
-      setState({
-        hasShownOnboarding: false,
-        currentScreen: "overview",
-      });
+      setHasShownOnboarding(false);
+      setCurrentScreen("overview");
       router.replace("/(onboarding)/overview");
     } catch (error) {
       console.error("Error resetting onboarding:", error);
@@ -96,10 +80,11 @@ export function useOnboarding() {
   };
 
   return {
-    currentScreen: state.currentScreen,
-    hasShownOnboarding: state.hasShownOnboarding,
-    setCurrentScreen,
+    currentScreen,
+    hasShownOnboarding,
+    setCurrentScreen: setCurrentScreenHandler,
     completeOnboarding,
     resetOnboarding,
+    loadOnboardingState,
   };
 }

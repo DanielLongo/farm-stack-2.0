@@ -17,7 +17,7 @@ function RootLayoutContent() {
     useState<boolean>(false);
   const [initializing, setInitializing] = useState(true);
   const { biometricToken } = useBiometricToken();
-  const { hasShownOnboarding } = useOnboarding();
+  const { hasShownOnboarding, loadOnboardingState } = useOnboarding();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
@@ -30,25 +30,35 @@ function RootLayoutContent() {
 
   useEffect(() => {
     const isBiometricAuthenticated = biometricToken !== null;
+
+    if (!hasShownOnboarding) {
+      // make sure we load the onboarding state
+      loadOnboardingState();
+    }
     const needsOnboarding = !hasShownOnboarding;
+
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboardingGroup = segments[0] === "(onboarding)";
+
+    console.log("is in auth group", inAuthGroup);
+    console.log("is in onboarding group", inOnboardingGroup);
+    console.log("needs onboarding", needsOnboarding);
 
     if (initializing) return;
 
     if (!isFirebaseAuthenticated) {
-      console.log("replacing with login");
       if (!inAuthGroup && !inOnboardingGroup) {
         router.replace("/(auth)/login");
       }
     } else if (!isBiometricAuthenticated) {
-      console.log("replacing with biometric_login");
-      router.replace("/(auth)/biometric_login");
+      if (!inAuthGroup) {
+        router.replace("/(auth)/biometric_login");
+      }
     } else if (needsOnboarding) {
-      console.log("replacing with onboarding");
-      router.replace("/(onboarding)/overview");
+      if (!inOnboardingGroup) {
+        router.replace("/(onboarding)/overview");
+      }
     } else {
-      console.log("replacing with tabs");
       if (inAuthGroup || inOnboardingGroup) {
         router.replace("/(tabs)");
       }

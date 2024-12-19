@@ -72,7 +72,6 @@ export default function Overview() {
           className="bg-blue-500 py-4 px-6 rounded-xl mb-8"
           onPress={() => {
             // Add navigation logic here
-            console.log("Continue pressed");
             setCurrentScreen("security");
           }}
         >
