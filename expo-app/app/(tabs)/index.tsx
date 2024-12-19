@@ -13,6 +13,7 @@ import { useState } from "react";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { auth } from "../../config/firebase";
+import { useUser } from "../../hooks/useUser";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +21,7 @@ export default function Index() {
   const fadeAnim = useState(new Animated.Value(0))[0];
   const translateY = useState(new Animated.Value(-10))[0];
   const router = useRouter();
-
+  const { payingStatus, getPayingStatus } = useUser();
   const recordings = [
     {
       date: "12/17/24",
@@ -172,8 +173,11 @@ export default function Index() {
             <Feather name="shopping-cart" size={20} color="black" />
           </TouchableOpacity>
 
-          <TouchableOpacity className="py-3 px-4 flex-row items-center justify-between border-b border-gray-100">
-            <Text className="text-base">Restore Purchases</Text>
+          <TouchableOpacity
+            className="py-3 px-4 flex-row items-center justify-between border-b border-gray-100"
+            onPress={getPayingStatus}
+          >
+            <Text className="text-base">Paying Status: {payingStatus}</Text>
             <Feather name="tag" size={20} color="black" />
           </TouchableOpacity>
 

@@ -1,19 +1,23 @@
 import os
 import fastapi
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from pydantic import BaseModel
 import httpx
 from app.core.models import User
 from app.core.dependencies import get_user
-from app.core.auth import validate_token
+from app.core.auth import get_authorization_header_elements, validate_token
 from app.integrations.clients.mongo_client import MongoClient
+from app.core.exceptions import (
+    BadCredentialsException,
+    RequiresAuthenticationException,
+)
+import firebase_admin
+from firebase_admin import app_check, auth
+
+
+default_app = firebase_admin.initialize_app(options={"projectId": "the-thrive-app"})
 
 router = fastapi.APIRouter()
-
-# Add API key and URLs
-WEB_API_KEY = os.getenv("WEB_API_KEY", "YOUR_WEB_API_KEY_HERE")
-SEND_VERIFICATION_CODE_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key={WEB_API_KEY}"
-SIGN_IN_WITH_PHONE_NUMBER_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key={WEB_API_KEY}"
 
 
 # Add Pydantic models
@@ -38,71 +42,29 @@ class VerifyCodeResponse(BaseModel):
     phoneNumber: str
 
 
+def get_token_from_request(request: Request):
+    authorization_header = request.headers.get("Authorization")
+    print("authorization_header", authorization_header)
+    assert len(authorization_header.split("Bearer ")) == 2
+    return authorization_header.split("Bearer ")[1]
+
+
+def get_firebase_user(token: str = Depends(get_token_from_request)):
+    print("token", token)
+    try:
+        return auth.verify_id_token(token)
+    except Exception as e:  # Catching the general exception for demonstration
+        print("Error verifying token:", e)
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
 @router.get("/")
 async def get_user_info(user: User = Depends(get_user)):
     return user
 
 
-@router.post("/register")
-async def register_user(user_data: dict, token: dict = Depends(validate_token)):
-    auth0_user_id = token.get("sub")
-    user = User(auth0_user_id=auth0_user_id, name=user_data.get("name"))
-    mongo_client = MongoClient()
-    created_user = await mongo_client.create_user(user)
-    return created_user
+@router.get("/paying_status")
+async def get_paying_status(user: User = Depends(get_firebase_user)):
 
-
-@router.post("/send-code", response_model=SendCodeResponse)
-async def send_verification_code(payload: SendCodeRequest):
-    """
-    Sends a verification code via SMS to the provided phone number using Google Identity Platform.
-    """
-    data = {
-        "phoneNumber": payload.phoneNumber,
-        "recaptchaToken": payload.recaptchaToken,
-    }
-
-    async with httpx.AsyncClient() as client:
-        r = await client.post(SEND_VERIFICATION_CODE_URL, json=data)
-        if r.status_code != 200:
-            error_data = r.json()
-            raise HTTPException(
-                status_code=400,
-                detail=error_data.get("error", {}).get("message", "Unknown error"),
-            )
-
-        response_data = r.json()
-        if "sessionInfo" not in response_data:
-            raise HTTPException(
-                status_code=400, detail="No sessionInfo returned from API"
-            )
-
-        return SendCodeResponse(sessionInfo=response_data["sessionInfo"])
-
-
-@router.post("/verify-code", response_model=VerifyCodeResponse)
-async def verify_code(payload: VerifyCodeRequest):
-    """
-    Verifies the SMS code the user received. On success, returns an ID token and user info.
-    """
-    data = {"sessionInfo": payload.sessionInfo, "code": payload.code}
-
-    async with httpx.AsyncClient() as client:
-        r = await client.post(SIGN_IN_WITH_PHONE_NUMBER_URL, json=data)
-        if r.status_code != 200:
-            error_data = r.json()
-            raise HTTPException(
-                status_code=400,
-                detail=error_data.get("error", {}).get("message", "Unknown error"),
-            )
-
-        response_data = r.json()
-        if "idToken" not in response_data:
-            raise HTTPException(status_code=400, detail="No idToken returned from API")
-
-        return VerifyCodeResponse(
-            idToken=response_data["idToken"],
-            refreshToken=response_data.get("refreshToken", ""),
-            localId=response_data.get("localId", ""),
-            phoneNumber=response_data.get("phoneNumber", ""),
-        )
+    print("user", user)
+    return {"payingStatus": True}
