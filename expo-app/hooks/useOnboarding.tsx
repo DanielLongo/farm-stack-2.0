@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 
 const ONBOARDING_KEY = "@onboarding_status1";
 const ONBOARDING_COMPLETED_KEY = "@onboarding_completed1";
@@ -17,6 +17,7 @@ interface OnboardingState {
 }
 
 export function useOnboarding() {
+  const pathname = usePathname();
   const [state, setState] = useState<OnboardingState>({
     hasShownOnboarding: false,
     currentScreen: "overview",
@@ -30,8 +31,13 @@ export function useOnboarding() {
   useEffect(() => {
     if (state.currentScreen === "complete") {
       completeOnboarding();
+    } else {
+      // Check if current path doesn't match current screen
+      //   if (!pathname.includes(state.currentScreen)) {
+      //     router.replace(`/(onboarding)/${state.currentScreen}`);
+      //   }
     }
-  }, [state.currentScreen]);
+  }, [state.currentScreen, pathname]);
 
   const loadOnboardingState = async () => {
     try {
