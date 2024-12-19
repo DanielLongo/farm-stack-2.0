@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
-
+import { useBiometricToken } from "../config/BiometricTokenContext";
 const BIOMETRIC_AUTH_KEY = "@biometric_authenticated";
 
 export function useBiometricLogin() {
+  const { setBiometricToken } = useBiometricToken();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [biometricType, setBiometricType] = useState<string>("Biometrics");
@@ -48,7 +49,7 @@ export function useBiometricLogin() {
   };
 
   // Authenticate using biometrics
-  const authenticate = async (onSuccess?: () => void) => {
+  const authenticate = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -64,8 +65,8 @@ export function useBiometricLogin() {
         console.log(
           "BiometricLogin: Authentication successful. calling onSuccess"
         );
-        router.replace("/(tabs)");
-        onSuccess?.();
+        setBiometricToken("token");
+        return "token";
       } else {
         setError("Authentication failed");
       }
@@ -81,12 +82,13 @@ export function useBiometricLogin() {
       return false;
     } finally {
       setLoading(false);
+      setBiometricToken("token");
     }
   };
 
   // Reset authentication state
   const reset = async () => {
-    setIsAuthenticated(false);
+    setBiometricToken(null);
   };
 
   // Check initial authentication state

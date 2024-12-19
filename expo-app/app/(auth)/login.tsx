@@ -8,7 +8,6 @@ import {
 import { useState, useRef } from "react";
 import { signInWithPhoneNumber, PhoneAuthProvider } from "firebase/auth";
 import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
-
 import { useRouter } from "expo-router";
 import { auth } from "../../config/firebase";
 

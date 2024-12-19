@@ -6,16 +6,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useBiometricLogin } from "../../hooks/useBiometricLogin";
 
 export default function BiometricLogin() {
-  const router = useRouter();
-  const { authenticate, loading, error, biometricType, isLoading } =
-    useBiometricLogin();
+  const { authenticate, loading, error, biometricType } = useBiometricLogin();
 
   const handleAuthenticate = async () => {
-    await authenticate(() => {
-      // This will only run on successful authentication
-      console.log("BiometricLogin: Authentication successful");
-      router.replace("/(tabs)");
-    });
+    await authenticate();
   };
 
   return (
@@ -48,12 +42,12 @@ export default function BiometricLogin() {
 
       <TouchableOpacity
         className={`w-full ${
-          isLoading ? "bg-blue-400" : "bg-blue-500"
+          loading ? "bg-blue-400" : "bg-blue-500"
         } p-4 rounded-lg mb-4`}
         onPress={handleAuthenticate}
-        disabled={isLoading}
+        disabled={loading}
       >
-        {isLoading ? (
+        {loading ? (
           <ActivityIndicator color="white" />
         ) : (
           <Text className="text-white text-center font-semibold">
