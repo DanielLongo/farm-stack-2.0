@@ -1,3 +1,4 @@
+from typing import Optional
 from app.integrations.clients.base_client import BaseClient
 from datetime import datetime
 import json
@@ -17,10 +18,12 @@ class MongoClient(BaseClient):
         assert self.mongo_uri is not None, "MONGO_URI environment variable not set"
         self.db_client = AsyncIOMotorClient(self.mongo_uri)[database_name]
 
-    async def get_user(self, auth0_user_user_id: str) -> User:
+    async def get_user(self, google_auth_user_id: str) -> Optional[User]:
         user = await self.db_client.users.find_one(
-            {"auth0_user_id": auth0_user_user_id}
+            {"google_auth_user_id": google_auth_user_id}
         )
+        if user is None:
+            return None
         return User(**user)
 
     async def create_user(self, user: User) -> User:

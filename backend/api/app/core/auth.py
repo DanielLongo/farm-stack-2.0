@@ -39,16 +39,11 @@ def get_authorization_header_elements(
 
 def get_bearer_token(request: StarletteRequest) -> str:
     authorization_header = request.headers.get("Authorization")
-    if authorization_header:
-        authorization_header_elements = get_authorization_header_elements(
-            authorization_header
-        )
-        if authorization_header_elements.are_valid:
-            return authorization_header_elements.bearer_token
-        else:
-            raise BadCredentialsException
-    else:
+    if authorization_header is None:
         raise RequiresAuthenticationException
+    if len(authorization_header.split("Bearer ")) != 2:
+        raise BadCredentialsException
+    return authorization_header.split("Bearer ")[1]
 
 
 @dataclass
